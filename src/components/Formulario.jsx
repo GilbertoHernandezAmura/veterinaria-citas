@@ -1,12 +1,78 @@
-const Formulario = () => {
+import PropTypes from 'prop-types';
+import { useState } from 'react';
+
+const Formulario = ({ setPacientes }) => {
+  const [nombreMascota, setNombreMascota] = useState('');
+  const [nombrePropietario, setNombrePropietario] = useState('');
+  const [email, setEmail] = useState('');
+  const [fechaIngreso, setFechaIngreso] = useState('');
+  const [observaciones, setObservaciones] = useState('');
+  const [huboError, setHuboError] = useState(false);
+
+  const handleChangeNombreMascota = (evt) => {
+    setNombreMascota(evt.target.value);
+  };
+
+  const handleChangeNombrePropietario = (evt) => {
+    setNombrePropietario(evt.target.value);
+  };
+
+  const handleChangeEmail = (evt) => {
+    setEmail(evt.target.value);
+  };
+
+  const handleChangeFechaIngreso = (evt) => {
+    setFechaIngreso(evt.target.value);
+  };
+
+  const handleChangeObservaciones = (evt) => {
+    setObservaciones(evt.target.value);
+  };
+
+  const handleSubmit = (evt) => {
+    evt.preventDefault();
+    // Form validations
+    if (
+      [
+        nombreMascota,
+        nombrePropietario,
+        email,
+        fechaIngreso,
+        observaciones,
+      ].includes('')
+    ) {
+      setHuboError(true);
+      console.log('Hubo algun fallo.');
+    } else {
+      huboError && setHuboError(false);
+      console.log('Todos OK');
+      const nuevoPaciente = {
+        nombreMascota,
+        nombrePropietario,
+        email,
+        fechaIngreso,
+        observaciones,
+      };
+      setPacientes((prevState) => [...prevState, nuevoPaciente]);
+    }
+  };
+
   return (
     <div className="md:w-1/2 lg:w-2/5">
       <h2 className="font-black text-3xl text-center">Seguimiento Pacientes</h2>
-      <p className="font-bold text-lg text-center mt-5 mb-10">
+      <p className="font-bold text-xl text-center mt-5 mb-10">
         Añade Pacientes y <span className="text-indigo-600">Administralos</span>
       </p>
 
-      <form className="bg-white shadow-md rounded-lg py-10 px-5 mb-5">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-md rounded-lg py-10 px-5 mb-10 mx-5 md:mx-0"
+      >
+        {huboError && (
+          <div className="font-bold bg-red-700 py-3 text-center text-white rounded-lg mb-5">
+            Todos los campos son obligatorios
+          </div>
+        )}
         <div className="mb-5">
           <label
             className="block text-gray-700 uppercase font-bold"
@@ -20,6 +86,8 @@ const Formulario = () => {
             name="nombre-mascota"
             type="text"
             placeholder="Rocco"
+            value={nombreMascota}
+            onChange={handleChangeNombreMascota}
           />
         </div>
 
@@ -36,6 +104,8 @@ const Formulario = () => {
             name="nombre-propietario"
             type="text"
             placeholder="John Wick"
+            value={nombrePropietario}
+            onChange={handleChangeNombrePropietario}
           />
         </div>
 
@@ -52,6 +122,8 @@ const Formulario = () => {
             name="email"
             type="email"
             placeholder="johnwick@example.com"
+            value={email}
+            onChange={handleChangeEmail}
           />
         </div>
 
@@ -67,6 +139,8 @@ const Formulario = () => {
             id="fecha-ingreso"
             name="fecha-ingreso"
             type="date"
+            value={fechaIngreso}
+            onChange={handleChangeFechaIngreso}
           />
         </div>
 
@@ -81,8 +155,10 @@ const Formulario = () => {
             className="w-full p-2 mt-2 border-2 rounded-md placeholder-gray-400"
             name="observaciones"
             id="observaciones"
-            rows="7"
+            rows="5"
             placeholder="Le ocurre..."
+            value={observaciones}
+            onChange={handleChangeObservaciones}
           />
         </div>
         <input
@@ -94,6 +170,10 @@ const Formulario = () => {
       </form>
     </div>
   );
+};
+
+Formulario.propTypes = {
+  setPacientes: PropTypes.func.isRequired,
 };
 
 export default Formulario;
