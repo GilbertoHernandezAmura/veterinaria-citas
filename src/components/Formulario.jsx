@@ -1,13 +1,25 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Error from './Error.jsx';
 
-const Formulario = ({ setPacientes }) => {
+const Formulario = ({ setPacientes, paciente, setPaciente }) => {
   const [nombreMascota, setNombreMascota] = useState('');
   const [nombrePropietario, setNombrePropietario] = useState('');
   const [email, setEmail] = useState('');
   const [fechaIngreso, setFechaIngreso] = useState('');
   const [observaciones, setObservaciones] = useState('');
   const [huboError, setHuboError] = useState(false);
+
+  useEffect(() => {
+    // Poniendo datos en el form cuando el estate de paciente se actualiza.
+    if (paciente && Object.keys(paciente).length > 0) {
+      setNombreMascota(paciente.nombreMascota);
+      setNombrePropietario(paciente.nombrePropietario);
+      setEmail(paciente.email);
+      setFechaIngreso(paciente.fechaIngreso);
+      setObservaciones(paciente.observaciones);
+    }
+  }, [paciente]);
 
   const handleChangeNombreMascota = (evt) => {
     setNombreMascota(evt.target.value);
@@ -29,11 +41,17 @@ const Formulario = ({ setPacientes }) => {
     setObservaciones(evt.target.value);
   };
 
+  const generarId = () => {
+    const randomNum = Math.random().toString(36).substring(2);
+    const fecha = Date.now().toString(36);
+    return randomNum + fecha;
+  };
+
   const handleSubmit = (evt) => {
     evt.preventDefault();
     // Form validations
     if (
-      [
+      ![
         nombreMascota,
         nombrePropietario,
         email,
@@ -41,19 +59,42 @@ const Formulario = ({ setPacientes }) => {
         observaciones,
       ].includes('')
     ) {
-      setHuboError(true);
-      console.log('Hubo algun fallo.');
-    } else {
+      // Todo OK
       huboError && setHuboError(false);
-      console.log('Todos OK');
-      const nuevoPaciente = {
+
+      const estadoPaciente = {
         nombreMascota,
         nombrePropietario,
         email,
         fechaIngreso,
         observaciones,
       };
-      setPacientes((prevState) => [...prevState, nuevoPaciente]);
+      // Checar si estamos editando.
+      if (paciente?.id) {
+        estadoPaciente.id = paciente.id;
+        setPacientes((prevState) => {
+          const pacientesActualizados = prevState.map((p) =>
+            p.id === estadoPaciente.id ? estadoPaciente : p
+          );
+          return pacientesActualizados;
+        });
+      } else {
+        // Nuevo registro
+        estadoPaciente.id = generarId();
+        setPacientes((prevState) => [...prevState, estadoPaciente]);
+      }
+
+      // Reiniciar state form
+      setNombreMascota('');
+      setNombrePropietario('');
+      setEmail('');
+      setFechaIngreso('');
+      setObservaciones('');
+      // Reset state de paciente para proximos edits
+      setPaciente({});
+    } else {
+      // Hubo algun fallo
+      setHuboError(true);
     }
   };
 
@@ -68,11 +109,7 @@ const Formulario = ({ setPacientes }) => {
         onSubmit={handleSubmit}
         className="bg-white shadow-md rounded-lg py-10 px-5 mb-10 mx-5 md:mx-0"
       >
-        {huboError && (
-          <div className="font-bold bg-red-700 py-3 text-center text-white rounded-lg mb-5">
-            Todos los campos son obligatorios
-          </div>
-        )}
+        {huboError && <Error mensaje="Todos los campos son obligatorios" />}
         <div className="mb-5">
           <label
             className="block text-gray-700 uppercase font-bold"
@@ -165,7 +202,7 @@ const Formulario = ({ setPacientes }) => {
           className="bg-indigo-600 text-white w-full block p-3 rounded-md 
           uppercase font-bold hover:bg-indigo-700 cursor-pointer transition-colors"
           type="submit"
-          value="Agregar Paciente"
+          value={!paciente?.id ? 'Agregar Paciente' : 'Editar Paciente'}
         />
       </form>
     </div>
@@ -174,6 +211,8 @@ const Formulario = ({ setPacientes }) => {
 
 Formulario.propTypes = {
   setPacientes: PropTypes.func.isRequired,
+  paciente: PropTypes.object.isRequired,
+  setPaciente: PropTypes.func,
 };
 
 export default Formulario;
